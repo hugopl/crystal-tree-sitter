@@ -8,6 +8,11 @@ lib LibTreeSitter
   type TSQuery = Void*
   type TSQueryCursor = Void*
 
+  enum TSInputEncoding
+    UTF8
+    UTF16
+  end
+
   struct TSNode
     context : UInt32[4]
     id : Void*
@@ -17,6 +22,19 @@ lib LibTreeSitter
   struct TSPoint
     row : UInt32
     column : UInt32
+  end
+
+  struct TSRange
+    start_point : TSPoint
+    end_point : TSPoint
+    start_byte : UInt32
+    end_byte : UInt32
+  end
+
+  struct TSInput
+    payload : Void*
+    read : Void*, UInt32, TSPoint, UInt32* -> LibC::Char*
+    encoding : TSInputEncoding
   end
 
   struct TSQueryCapture
@@ -58,6 +76,7 @@ lib LibTreeSitter
   fun ts_parser_set_language(self : TSParser, language : TSLanguage) : Bool
   fun ts_parser_language(self : TSParser) : TSLanguage
 
+  fun ts_parser_parse(self : TSParser, old_tree : TSTree, input : TSInput) : TSTree
   fun ts_parser_parse_string(self : TSParser, old_tree : TSTree, string : LibC::Char*, length : UInt32) : TSTree
   fun ts_parser_parse_string_encoding(self : TSParser, old_tree : TSTree, string : LibC::Char*, length : UInt32, encoding : Int32) : TSTree
 

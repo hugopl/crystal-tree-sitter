@@ -8,7 +8,7 @@ describe TreeSitter do
     parser.language = TreeSitter::JSONLanguage.new
     parser.language.should_not eq(nil)
 
-    tree = parser.parse_string(nil, "[1, null]")
+    tree = parser.parse(nil, "[1, null]")
 
     root_node = tree.root_node
     array_node = root_node.named_child(0)
@@ -28,7 +28,7 @@ describe TreeSitter do
 
   it "can get node start/end points" do
     parser = TreeSitter::Parser.new(language: TreeSitter::JSONLanguage.new)
-    tree = parser.parse_string(nil, "[1,\n null]")
+    tree = parser.parse(nil, "[1,\n null]")
 
     root_node = tree.root_node
     array_node = root_node.named_child(0)
@@ -39,7 +39,7 @@ describe TreeSitter do
 
   it "can get node start/end byte" do
     parser = TreeSitter::Parser.new(language: TreeSitter::JSONLanguage.new)
-    tree = parser.parse_string(nil, "[1,\n null]")
+    tree = parser.parse(nil, "[1,\n null]")
 
     root_node = tree.root_node
     array_node = root_node.named_child(0)

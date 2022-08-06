@@ -3,6 +3,7 @@
 /bin/
 /.shards/
 *.dwarf
+/.ccls-cache/
 /parsers/**/*.o
 /parsers/**/*.a
 # Libraries don't need dependency lock

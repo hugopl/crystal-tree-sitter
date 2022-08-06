@@ -4,7 +4,7 @@ describe TreeSitter::Highlighter do
   it "can highlight code" do
     language = TreeSitter::JSONLanguage.new
     parser = TreeSitter::Parser.new(language: language)
-    tree = parser.parse_string(nil, "[1, null]")
+    tree = parser.parse(nil, "[1, null]")
     root_node = tree.root_node
 
     highlighter = TreeSitter::Highlighter.new(language)

@@ -5,8 +5,8 @@ require "./tree_sitter/query"
 require "./tree_sitter/query_cursor"
 
 {% if flag?(:doc) %}
-# A tuple with all supported languages.
-LANGUAGE_NAMES = {"Language 1", "Language 2", "..."}
+  # A tuple with all supported languages.
+  LANGUAGE_NAMES = {"Language 1", "Language 2", "..."}
 {% end %}
 
 private def calloc(n : LibC::SizeT, size : LibC::SizeT) : Pointer(Void)

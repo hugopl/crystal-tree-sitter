@@ -7,6 +7,8 @@ module TreeSitter
   class Parser
     @parser : LibTreeSitter::TSParser
 
+    alias ReadProc = Proc(UInt32, Point, Bytes)
+
     # Create a new parser.
     def initialize(*, language : Language? = nil)
       @parser = LibTreeSitter.ts_parser_new
@@ -34,11 +36,42 @@ module TreeSitter
       Language.new(ptr) if ptr
     end
 
-    def parse_string(old_tree : Tree?, string : String) : Tree?
-      ptr = LibTreeSitter.ts_parser_parse_string(to_unsafe, old_tree, string, string.bytesize)
-      raise Error.new("Parser error") if ptr.null?
+    def parse?(old_tree : Tree?, io : IO) : Tree?
+      parse?(old_tree) do |index, pos|
+        slice = Bytes.new(1024)
+        io.seek(index)
+        n = io.read(slice)
+        slice[0, n]
+      end
+    end
 
-      Tree.new(ptr)
+    def parse(old_tree : Tree?, io : IO) : Tree?
+      parse?(old_tree, io) || raise Error.new("Parser error")
+    end
+
+    def parse?(old_tree : Tree?, string : String) : Tree?
+      ptr = LibTreeSitter.ts_parser_parse_string(to_unsafe, old_tree, string, string.bytesize)
+
+      Tree.new(ptr) if ptr
+    end
+
+    def parse(old_tree : Tree?, string : String) : Tree
+      parse?(old_tree, string) || raise Error.new("Parser error")
+    end
+
+    def parse?(old_tree : Tree?, &block : ReadProc)
+      input = LibTreeSitter::TSInput.new
+      input.payload = Box.box(block)
+      input.encoding = LibTreeSitter::TSInputEncoding::UTF8
+      input.read = ->(payload : Pointer(Void), index : UInt32, pos : LibTreeSitter::TSPoint, read : Pointer(UInt32)) do
+        callback = Box(ReadProc).unbox(payload)
+        bytes = callback.call(index, Point.new(pos))
+        read.value = bytes.size.to_u32
+        bytes.to_unsafe
+      end
+
+      ptr = LibTreeSitter.ts_parser_parse(to_unsafe, old_tree, input)
+      Tree.new(ptr) if ptr
     end
 
     # Instruct the parser to start the next parse from the beginning.
