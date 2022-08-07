@@ -105,10 +105,6 @@ def generate_module(parser : Parser)
   if file_types
     match_code = file_types.map { |ext| "filename.ends_with?(\".#{ext}\")" }.join(" || ")
     puts <<-EOT
-      def file_types : Array(String)
-        #{file_types.inspect}
-      end
-
       def self.match?(filename : String) : Bool
         #{match_code}
       end
