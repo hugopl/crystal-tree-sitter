@@ -7,7 +7,11 @@ module TreeSitter
   class Parser
     @parser : LibTreeSitter::TSParser
 
-    alias ReadProc = Proc(UInt32, Point, Bytes)
+    # Used on `Parser#parse` method, the 2 parameters are
+    # - byte index
+    # - position
+    # Return value must be a Bytes object with the data or nil if there's no more data.
+    alias ReadProc = Proc(UInt32, Point, Bytes?)
 
     # Create a new parser.
     def initialize(*, language : Language? = nil)
@@ -59,19 +63,28 @@ module TreeSitter
       parse?(old_tree, string) || raise Error.new("Parser error")
     end
 
-    def parse?(old_tree : Tree?, &block : ReadProc)
+    def parse?(old_tree : Tree?, &block : ReadProc) : Tree?
       input = LibTreeSitter::TSInput.new
       input.payload = Box.box(block)
       input.encoding = LibTreeSitter::TSInputEncoding::UTF8
       input.read = ->(payload : Pointer(Void), index : UInt32, pos : LibTreeSitter::TSPoint, read : Pointer(UInt32)) do
         callback = Box(ReadProc).unbox(payload)
         bytes = callback.call(index, Point.new(pos))
-        read.value = bytes.size.to_u32
-        bytes.to_unsafe
+        if bytes.nil?
+          read.value = 0
+          Pointer(LibC::Char).null
+        else
+          read.value = bytes.size.to_u32
+          bytes.to_unsafe
+        end
       end
 
       ptr = LibTreeSitter.ts_parser_parse(to_unsafe, old_tree, input)
       Tree.new(ptr) if ptr
+    end
+
+    def parse(old_tree : Tree?, &block : ReadProc) : Tree
+      parse?(old_tree, block) || raise Error.new("Parser error")
     end
 
     # Instruct the parser to start the next parse from the beginning.

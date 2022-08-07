@@ -20,8 +20,11 @@ lib LibTreeSitter
   end
 
   struct TSPoint
-    row : UInt32
-    column : UInt32
+    # TreeSitter API uses unsigned integers here, to avoid habing a lot of uint/int casts
+    # we just consider that people are good and don't have files with 2 billions+ of rows or
+    # columns
+    row : Int32
+    column : Int32
   end
 
   struct TSRange
