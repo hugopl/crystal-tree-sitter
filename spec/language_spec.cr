@@ -13,4 +13,11 @@ describe TreeSitter::Language do
     lang2 = TreeSitter::JSONLanguage.new
     lang1.object_id.should eq(lang2.object_id)
   end
+
+  it "can detect language from file path" do
+    TreeSitter::Language.detect("foo.json").should be_a(TreeSitter::JSONLanguage)
+    TreeSitter::Language.detect("foo.c").should be_a(TreeSitter::CLanguage)
+    TreeSitter::Language.detect("foo.h").should be_a(TreeSitter::CLanguage)
+    TreeSitter::Language.detect("foo.abc").should eq(nil)
+  end
 end

@@ -23,9 +23,6 @@ class Package
   getter tree_sitter : Array(TreeSitter)?
 end
 
-class BindGenError < RuntimeError
-end
-
 struct Parser
   getter name : String
   getter title : String
@@ -59,10 +56,9 @@ def compile_binding(parser : Parser)
 
   source = parser.dir.join("src", "parser.c")
   cmd = "#{c_compiler} -c -o #{built_obj} #{source} && ar rcs #{built_lib} #{built_obj} && rm #{built_obj}"
-  system(cmd)
-
-  # FIXME: Include compiler STDERR in the exception
-  raise BindGenError.new("Failed to compile #{source} using:\n#{cmd}") unless $?.success?
+  puts "{% puts #{cmd.inspect} %}"
+  `#{cmd}`
+  abort("Failed to compile #{source} using:\n#{cmd}") unless $?.success?
 end
 
 def generate_lib_declaration(parser : Parser)
@@ -75,7 +71,7 @@ def generate_lib_declaration(parser : Parser)
 end
 
 def generate_module(parser : Parser)
-  # FIXME: Thisis a crystal stdlib bug
+  # FIXME: This is a crystal stdlib bug
   prerelease = parser.version.prerelease unless parser.version.prerelease.to_s.empty?
 
   puts <<-EOT
@@ -107,9 +103,14 @@ def generate_module(parser : Parser)
   file_types = parser.file_types
 
   if file_types
+    match_code = file_types.map { |ext| "filename.ends_with?(\".#{ext}\")" }.join(" || ")
     puts <<-EOT
       def file_types : Array(String)
         #{file_types.inspect}
+      end
+
+      def self.match?(filename : String) : Bool
+        #{match_code}
       end
     EOT
   end

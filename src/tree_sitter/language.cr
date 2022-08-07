@@ -43,7 +43,14 @@ module TreeSitter
       LibTreeSitter.ts_language_version(to_unsafe)
     end
 
-    def match?(path : Path) : Bool
+    def self.detect(filename : String) : Language?
+      {% for lang in @type.all_subclasses %}
+        return {{ lang.id }}.new if {{ lang.id }}.match?(filename)
+      {% end %}
+    end
+
+    def self.match?(str) : Bool
+      false
     end
 
     def name : String
