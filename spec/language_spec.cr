@@ -4,7 +4,6 @@ describe TreeSitter::Language do
   it "have flags from package.json at compile time" do
     lang = TreeSitter::JSONLanguage.new
     lang.version.to_s.should eq("0.20.0")
-    lang.file_types.should eq(%w(json))
     lang.highlight_query.should_not eq(nil)
   end
 
