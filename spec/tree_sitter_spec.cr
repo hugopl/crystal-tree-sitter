@@ -49,6 +49,6 @@ describe TreeSitter do
   end
 
   it "have the available languages at compile time" do
-    TreeSitter::LANGUAGE_NAMES.should eq({"JSON", "C"})
+    TreeSitter::LANGUAGE_NAMES.should eq({"JSON", "C", "Ruby"})
   end
 end

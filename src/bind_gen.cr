@@ -31,6 +31,7 @@ struct Parser
   getter file_types : Array(String)?
   getter injection_regex : String?
   getter highlight_query : String?
+  property? cpp : Bool
 
   def initialize(@name, @title, dir)
     @dir = dir.expand
@@ -43,6 +44,7 @@ struct Parser
 
     highlights_path = @dir.join("queries/highlights.scm")
     @highlight_query = File.read(highlights_path) if File.exists?(highlights_path)
+    @cpp = !Dir[@dir.join("src", "*.c*")].all?(&.ends_with?(".c"))
   end
 end
 
@@ -54,16 +56,25 @@ def compile_binding(parser : Parser)
   # FIXME: Check if the .c file is newer than the .o.
   return if File.exists?(built_lib)
 
-  source = parser.dir.join("src", "parser.c")
-  cmd = "#{c_compiler} -c -o #{built_obj} #{source} && ar rcs #{built_lib} #{built_obj} && rm #{built_obj}"
-  puts "{% puts #{cmd.inspect} %}"
+  sources = Dir[parser.dir.join("src", "*.c*")]
+  objs = sources.map(&.gsub(/\.cc?\z/, ".o"))
+
+  sources.each do |source|
+    obj = source.gsub(/\.cc?\z/, ".o")
+    cmd = "#{c_compiler} -c -o #{obj} #{source}"
+    `#{cmd}`
+    abort("Failed to compile #{source} using:\n#{cmd}") unless $?.success?
+  end
+
+  cmd = "ar rcs #{built_lib} #{objs.join(' ')}"
   `#{cmd}`
-  abort("Failed to compile #{source} using:\n#{cmd}") unless $?.success?
+  abort("Failed to create static library using:\n#{cmd}") unless $?.success?
 end
 
 def generate_lib_declaration(parser : Parser)
+  cpp = " -lstdc++" if parser.cpp?
   puts <<-EOT
-  @[Link(lib: "tree-sitter-#{parser.name}", ldflags: "-L#{parser.dir}")]
+  @[Link(lib: "tree-sitter-#{parser.name}", ldflags: "-L#{parser.dir}#{cpp}")]
   lib LibTreeSitter#{parser.title}
     fun tree_sitter_#{parser.name} : LibTreeSitter::TSLanguage
   end
@@ -124,7 +135,7 @@ def generate_module(parser : Parser)
   EOT
 end
 
-def generate_parsers_enum(parsers : Array(Parser))
+def generate_language_names_constant(parsers : Array(Parser))
   print "LANGUAGE_NAMES = {"
   print parsers.map(&.title.inspect).join(", ")
   puts "}"
@@ -155,7 +166,7 @@ def main
   end
 
   puts "module TreeSitter"
-  generate_parsers_enum(parsers)
+  generate_language_names_constant(parsers)
   parsers.each do |parser|
     generate_module(parser)
   end
