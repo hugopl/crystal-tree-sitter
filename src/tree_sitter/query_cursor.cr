@@ -1,6 +1,7 @@
 module TreeSitter
   class QueryCursor
     @cursor : LibTreeSitter::TSQueryCursor
+    @query : Query?
 
     # Create a new cursor for executing a given query.
     #
@@ -15,21 +16,37 @@ module TreeSitter
       LibTreeSitter.ts_query_cursor_delete(to_unsafe)
     end
 
+    def exec(query : Query, node : Node)
+      @query = query
+      LibTreeSitter.ts_query_cursor_exec(to_unsafe, query, node)
+    end
+
+    def next_capture : {String, Node}?
+      query = @query
+      return if query.nil?
+
+      ok = LibTreeSitter.ts_query_cursor_next_capture(to_unsafe, out match, out capture_index)
+      return unless ok
+
+      capture = match.captures[capture_index]
+      ptr = LibTreeSitter.ts_query_capture_name_for_id(query, capture.index, out strlen)
+      rule = TreeSitter.string_pool.get(ptr, strlen)
+      node = Node.new(capture.node)
+
+      {rule, node}
+    end
+
     # Start running a given query on a given node.
     #
     # Yield the capture name and the node
     def exec(query : Query, node : Node, &block)
-      LibTreeSitter.ts_query_cursor_exec(to_unsafe, query, node)
+      exec(query, node)
 
       loop do
-        ok = LibTreeSitter.ts_query_cursor_next_capture(to_unsafe, out match, out capture_index)
-        return unless ok
+        rule_node = next_capture
+        break if rule_node.nil?
 
-        capture = match.captures[capture_index]
-        ptr = LibTreeSitter.ts_query_capture_name_for_id(query, capture.index, out strlen)
-        rule = String.new(ptr, strlen, strlen)
-        node = Node.new(capture.node)
-        yield(rule, node)
+        yield(*rule_node)
       end
     end
 

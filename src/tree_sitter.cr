@@ -42,6 +42,8 @@ module TreeSitter
     Auxiliary
   end
 
+  protected class_getter string_pool = StringPool.new
+
   # Init tree-sitter by telling it to use the Crystal GC as memory allocator.
   # This is called automatically when you require tree-sitter unless you compile with `-Dno_init_tree_sitter`.
   def init

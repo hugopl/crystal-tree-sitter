@@ -7,10 +7,10 @@ describe TreeSitter::Highlighter do
     tree = parser.parse(nil, "[1, null]")
     root_node = tree.root_node
 
-    highlighter = TreeSitter::Highlighter.new(language)
+    highlighter = TreeSitter::Highlighter.new(language, root_node)
     rules = [] of String
     nodes = [] of String
-    highlighter.highlight(root_node) do |rule, node|
+    highlighter.each do |rule, node|
       rules << rule
       nodes << node.to_s
     end
