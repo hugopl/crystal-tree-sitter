@@ -6,16 +6,31 @@ module TreeSitter
   # within the the [Tree-sitter GitHub organization](https://github.com/tree-sitter).
   class Language
     @lang : LibTreeSitter::TSLanguage
+    getter name : String
     protected class_property loaded_languages = Hash(LibTreeSitter::TSLanguage, Language).new
 
     @@loaded_languages = Hash(LibTreeSitter::TSLanguage, Language).new
 
     # :nodoc:
     def self.new(ptr : LibTreeSitter::TSLanguage)
-      @@loaded_languages[ptr]? || raise Error.new("Language not initiated.")
+      @@loaded_languages[ptr]
     end
 
-    protected def initialize(@lang)
+    def self.new(name : String)
+      TreeSitter::Repository.load_language(name)
+    end
+
+    # :nodoc:
+    def self.new(name : String, ptr : LibTreeSitter::TSLanguage)
+      @@loaded_languages[ptr] ||= begin
+        instance = Language.allocate
+        instance.initialize(name, ptr)
+        instance
+      end
+    end
+
+    # :nodoc:
+    protected def initialize(@name, @lang)
     end
 
     # Get the number of distinct node types in the language.
@@ -33,26 +48,8 @@ module TreeSitter
     # Tree-sitter.
     #
     # See also `Parser#language=`.
-    def version : UInt32
-      LibTreeSitter.ts_language_version(to_unsafe)
-    end
-
-    def self.detect(filename : String) : Language?
-      {% for lang in @type.all_subclasses %}
-        return {{ lang.id }}.new if {{ lang.id }}.match?(filename)
-      {% end %}
-    end
-
-    def self.match?(str) : Bool
-      false
-    end
-
-    def name : String
-      raise NotImplementedError.new(nil)
-    end
-
-    def version : SemanticVersion
-      raise NotImplementedError.new(nil)
+    def abi_version : Int32
+      LibTreeSitter.ts_language_version(to_unsafe).to_i
     end
 
     def injection_regex? : Regex?
@@ -64,7 +61,9 @@ module TreeSitter
     end
 
     def highlight_query? : Query?
-      nil
+      path = Repository.language_paths[@name]
+      query_source = File.read(Path.new(path).join("queries", "highlights.scm"))
+      Query.new(self, query_source)
     end
 
     def highlight_query : Query

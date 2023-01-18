@@ -13,6 +13,10 @@ module TreeSitter
     # Return value must be a Bytes object with the data or nil if there's no more data.
     alias ReadProc = Proc(UInt32, Point, Bytes?)
 
+    def initialize(language_name : String)
+      initialize(language: Language.new(language_name))
+    end
+
     # Create a new parser.
     def initialize(*, language : Language? = nil)
       @parser = LibTreeSitter.ts_parser_new
@@ -35,9 +39,11 @@ module TreeSitter
     end
 
     # Get the parser's current language.
-    def language : Language?
+    def language : Language
       ptr = LibTreeSitter.ts_parser_language(to_unsafe)
-      Language.new(ptr) if ptr
+      raise Error.new("Parser without language!") if ptr.null?
+
+      Language.new(ptr)
     end
 
     def parse?(old_tree : Tree?, io : IO) : Tree?

@@ -2,7 +2,11 @@
 
 Crystal bindings for [tree-sitter](https://github.com/tree-sitter/tree-sitter) API.
 
-I made this shard to be used by [Tijolo](https://github.com/hugopl/tijolo), so any missing API is because I didn't need it yet.
+It works by reading the tree-sitter CLI configuration file to locate where the parsers can be found, then it loads the
+parsers shared objects at runtime when needed. So any parser available on tree-sitter-cli must be available on Crystal.
+
+I made this shard to be used by [Tijolo](https://github.com/hugopl/tijolo), so any missing API is because I didn't need it
+or I haven't had time to work on it yet, probably the last one.
 
 ## Installation
 
@@ -18,30 +22,25 @@ I made this shard to be used by [Tijolo](https://github.com/hugopl/tijolo), so a
 
 ## Usage
 
-The API is *very* similar to the C API, just with objects instead of a functions.
+API still not stable at all and subject to change.
 
 ```crystal
 require "tree_sitter"
 
-# To load parsers you call the macro `require_tree_sitter_languages`, the parameters can be the parser name or directory,
-# if the parameter isn't a valid path the parser will look for one at `./parsers/tree-sitter-#{name}`.
-#
-# By default the language name  is the name param titleized, but if you want e.g. have JSON language class be called
-# `JSONLanguage` instead of `JsonLanguage` you load it as `json:JSON`.
-#
-# The example above load 4 parsers:
-#
-# - json at ./parsers/tree-sitter-json with JSON name
-# - ruby at ./parsers/tree-sitter-ruby with Ruby name
-# - a custom parser at ./my-parser with MyParser name
-require_tree_sitter_languages("json:JSON", "ruby", "c", "./my-parser/:MyParser")
+# Printing highlighting information
+highlighter = TreeSitter::Highlighter.new("json", %q({"hey":"ho"}))
+highlighter.each do |rule, node|
+  pp! rule
+  pp! node
+end
 
-parser = TreeSitter::Parser.new
-parser.language = TreeSitter::JSONLanguage.new
+# Doing thing step by step...
+parser = TreeSitter::Parser.new("json")
 tree = parser.parse_string(nil, "[1, null]")
 root_node = tree.root_node
 
-TreeSitter::Highlighter.new(language).highlight(root_node) do |rule, node|
+highlighter = TreeSitter::Highlighter.new(language, root_node)
+highlighter.each do |rule, node|
   pp! rule
   pp! node
 end
@@ -50,12 +49,6 @@ end
 The code used in the [Using Parsers](https://tree-sitter.github.io/tree-sitter/using-parsers) tree-sitter tutorial
 was ported as a spec test at [spec/tree_sitter_spec.cr](spec/tree_sitter_spec.cr), the API documentation is being
 ported as well, not yet on github-pages, but run `crystal doc` and have fun.
-
-## Adding parsers
-
-Currently the `require_tree_sitter_language` macro receives the language name a directory path where the parsers were cloned.
-
-This still subject to change in next releases.
 
 ## Contributing
 

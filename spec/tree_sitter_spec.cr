@@ -2,11 +2,7 @@ require "./spec_helper"
 
 describe TreeSitter do
   it "can reproduce the example in https://tree-sitter.github.io/tree-sitter/using-parsers" do
-    parser = TreeSitter::Parser.new
-    parser.language.should eq(nil)
-
-    parser.language = TreeSitter::JSONLanguage.new
-    parser.language.should_not eq(nil)
+    parser = TreeSitter::Parser.new("json")
 
     tree = parser.parse(nil, "[1, null]")
 
@@ -24,9 +20,5 @@ describe TreeSitter do
     number_node.child_count.should eq(0)
 
     root_node.to_s.should eq("(document (array (number) (null)))")
-  end
-
-  it "have the available languages at compile time" do
-    TreeSitter::LANGUAGE_NAMES.should eq({"JSON", "C", "Ruby"})
   end
 end
