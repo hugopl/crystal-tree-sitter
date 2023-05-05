@@ -3,25 +3,37 @@ require "./spec_helper"
 describe TreeSitter::Highlighter do
   it "can highlight json code" do
     highlighter = TreeSitter::Highlighter.new("json", "[1, null]")
-    rules = [] of String
-    nodes = [] of String
-    highlighter.each do |rule, node|
-      rules << rule
-      nodes << node.to_s
+    captures = [] of TreeSitter::Capture
+    highlighter.each do |capture|
+      captures << capture
     end
-    nodes.should eq(["(number)", "(null)"])
-    rules.should eq(%w(number constant.builtin))
+    captures.map(&.to_s).should eq(["number (number)", "constant.builtin (null)"])
   end
 
   it "can highlight C code" do
     highlighter = TreeSitter::Highlighter.new("c", "void main() {}")
-    rules = [] of String
-    nodes = [] of String
-    highlighter.each do |rule, node|
-      rules << rule
-      nodes << node.to_s
+    captures = [] of TreeSitter::Capture
+    highlighter.each do |capture|
+      captures << capture
     end
-    nodes.should eq(["(primitive_type)", "(identifier)", "(identifier)", "(identifier)"])
-    rules.should eq(%w(type function constant variable))
+    captures.map(&.to_s).should eq(["type (primitive_type)",
+                                    "function (identifier)",
+                                    "constant (identifier)",
+                                    "variable (identifier)"])
+  end
+
+  it "can tell rules by line numbers" do
+    highlighter = TreeSitter::Highlighter.new("json", "[1,\nnull]")
+    captures = [] of TreeSitter::Capture
+    highlighter.each_rule_for_line(0) do |capture|
+      captures << capture
+    end
+    captures.map(&.to_s).should eq(["number (number)"])
+
+    captures.clear
+    highlighter.each_rule_for_line(1) do |capture|
+      captures << capture
+    end
+    captures.map(&.to_s).should eq(["constant.builtin (null)"])
   end
 end

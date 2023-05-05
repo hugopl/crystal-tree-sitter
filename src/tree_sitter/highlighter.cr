@@ -1,6 +1,8 @@
+require "./query_cursor"
+
 module TreeSitter
   class Highlighter
-    include Iterator(Tuple(String, Node))
+    include Iterator(Capture)
 
     @cursor = TreeSitter::QueryCursor.new
 
@@ -16,8 +18,21 @@ module TreeSitter
     end
 
     def next
-      item = @cursor.next_capture
-      item ? item : stop
+      capture = @cursor.next_capture
+      capture ? capture : stop
+    end
+
+    # FIXME: This isn´t ready, it's just enough for me to test other things.
+    def each_rule_for_line(line : Int32)
+      last_capture = @cursor.last_capture
+      yield(last_capture) if last_capture && last_capture.includes_line?(line)
+
+      each do |capture|
+        next if capture < line
+        break unless capture.includes_line?(line)
+
+        yield(capture)
+      end
     end
   end
 end

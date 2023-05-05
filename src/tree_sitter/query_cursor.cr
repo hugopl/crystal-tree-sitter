@@ -1,7 +1,10 @@
+require "./capture"
+
 module TreeSitter
   class QueryCursor
     @cursor : LibTreeSitter::TSQueryCursor
     @query : Query?
+    getter last_capture : Capture?
 
     # Create a new cursor for executing a given query.
     #
@@ -21,7 +24,7 @@ module TreeSitter
       LibTreeSitter.ts_query_cursor_exec(to_unsafe, query, node)
     end
 
-    def next_capture : {String, Node}?
+    def next_capture : Capture?
       query = @query
       return if query.nil?
 
@@ -33,7 +36,7 @@ module TreeSitter
       rule = TreeSitter.string_pool.get(ptr, strlen)
       node = Node.new(capture.node)
 
-      {rule, node}
+      @last_capture = Capture.new(rule, node)
     end
 
     # Start running a given query on a given node.
