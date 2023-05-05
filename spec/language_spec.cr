@@ -3,7 +3,7 @@ require "./spec_helper"
 describe TreeSitter::Language do
   it "can be loaded" do
     lang = TreeSitter::Repository.load_language("json")
-    lang.abi_version.should eq(13)
+    lang.abi_version.should eq(14)
   end
 
   it "share the same instance" do

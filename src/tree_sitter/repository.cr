@@ -30,7 +30,7 @@ module TreeSitter
       lang_path = language_paths[name]?
       raise Error.new("Unknown language: #{name}.") if lang_path.nil?
 
-      ts_lang = load_shared_object(lang_path, name)
+      ts_lang = load_shared_object(name)
       Language.new(name, ts_lang)
     end
 
@@ -40,15 +40,18 @@ module TreeSitter
       nil
     end
 
-    def self.load_shared_object(path : Path, name : String) : LibTreeSitter::TSLanguage
-      so_path = path.join("src", "#{name}.so")
-      raise Error.new("#{so_path} doesn't exists.") unless File.exists?(so_path)
+    def self.load_shared_object(langguage_name : String) : LibTreeSitter::TSLanguage
+      cache_dir = ENV["XDG_CACHE_HOME"]? || Path.home.join(".cache")
+      cache_dir = Path.new(cache_dir)
+      so_path = cache_dir.join("tree-sitter", "lib", "#{langguage_name}.so")
+
+      raise Error.new("#{so_path} doesn't exists. Create it using tree-sitter CLI.") unless File.exists?(so_path)
 
       handle = LibC.dlopen(so_path.to_s, LibC::RTLD_LAZY | LibC::RTLD_LOCAL)
-      raise Error.new("Can't load language #{name}. #{so_path} was not found.") if handle.null?
+      raise Error.new("Can't load language #{langguage_name}. #{so_path} was not found.") if handle.null?
 
-      ptr = LibC.dlsym(handle, "tree_sitter_#{name}")
-      raise Error.new("Can't find symbol tree_sitter_#{name} at #{so_path}.") unless ptr
+      ptr = LibC.dlsym(handle, "tree_sitter_#{langguage_name}")
+      raise Error.new("Can't find symbol tree_sitter_#{langguage_name} at #{so_path}.") unless ptr
 
       Proc(LibTreeSitter::TSLanguage).new(ptr, Pointer(Void).null).call
     end
