@@ -48,10 +48,8 @@ module TreeSitter
 
     def parse?(old_tree : Tree?, io : IO) : Tree?
       parse?(old_tree) do |index, pos|
-        slice = Bytes.new(1024)
         io.seek(index)
-        n = io.read(slice)
-        slice[0, n]
+        io.getb_to_end
       end
     end
 
