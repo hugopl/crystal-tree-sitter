@@ -99,6 +99,7 @@ lib LibTreeSitter
   fun ts_tree_copy(self : TSTree) : TSTree
   fun ts_tree_delete(self : TSTree)
   fun ts_tree_root_node(self : TSTree) : TSNode
+  fun ts_tree_print_dot_graph(self : TSTree, file_descriptor : Int32)
 
   # Node
   fun ts_node_type(self : TSNode) : LibC::Char*

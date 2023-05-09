@@ -29,6 +29,28 @@ module TreeSitter
       Node.new(LibTreeSitter.ts_tree_root_node(to_unsafe))
     end
 
+    # Write a DOT graph describing the syntax tree to the given file.
+    def save_dot(io : IO::FileDescriptor)
+      LibTreeSitter.ts_tree_print_dot_graph(to_unsafe, io.fd)
+    end
+
+    # Write a DOT graph describing the syntax tree to the given file.
+    def save_dot(file : Path | String)
+      File.open(file, "w") do |file|
+        save_dot(file)
+      end
+    end
+
+    # Write a PNG graph describing the syntax tree to the given file.
+    def save_png(file : Path | String) : Nil
+      tempfile = File.tempfile("tree")
+      save_dot(tempfile)
+      tempfile.close
+      `dot -Tpng #{tempfile.path} > #{file}`
+    ensure
+      tempfile.try(&.delete)
+    end
+
     # :nodoc:
     def to_unsafe
       @tree
