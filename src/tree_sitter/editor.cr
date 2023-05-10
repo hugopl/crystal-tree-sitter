@@ -4,12 +4,11 @@ module TreeSitter
   #
   # You must provide a callback to transform `Point` coordinates into byte offsets and
   # byte offsets into `Point`.
-  class TreeEditor
+  abstract class Editor
     @point_to_offset_callback : Proc(Int32, Int32, UInt32)
     @offset_to_point_callback : Proc(UInt32, Point)
-    property tree : Tree
 
-    def initialize(@tree, @point_to_offset_callback, @offset_to_point_callback)
+    def initialize(@point_to_offset_callback, @offset_to_point_callback)
     end
 
     # Edit the syntax tree at *line* and *column*, adding *n_bytes*.
@@ -25,7 +24,7 @@ module TreeSitter
         old_end_point: LibTreeSitter::TSPoint.new(row: line, column: column),
         new_end_point: @offset_to_point_callback.call(end_byte),
       )
-      LibTreeSitter.ts_tree_edit(@tree, pointerof(edit))
+      edit(pointerof(edit))
     end
 
     # Edit the syntax tree at *line* and *column*, removing *n_bytes*.
@@ -41,7 +40,33 @@ module TreeSitter
         old_end_point: @offset_to_point_callback.call(end_byte),
         new_end_point: LibTreeSitter::TSPoint.new(row: line, column: column),
       )
-      LibTreeSitter.ts_tree_edit(@tree, pointerof(edit))
+      edit(pointerof(edit))
+    end
+
+    protected abstract def edit(edit : Pointer(LibTreeSitter::TSInputEdit))
+  end
+
+  class TreeEditor < Editor
+    property tree : Tree
+
+    def initialize(@tree, point_to_offset_callback, offset_to_point_callback)
+      super(point_to_offset_callback, offset_to_point_callback)
+    end
+
+    def edit(edit : Pointer(LibTreeSitter::TSInputEdit))
+      LibTreeSitter.ts_tree_edit(@tree, edit)
+    end
+  end
+
+  class NodeEditor < Editor
+    property node : Node
+
+    def initialize(@node, point_to_offset_callback, offset_to_point_callback)
+      super(point_to_offset_callback, offset_to_point_callback)
+    end
+
+    def edit(edit : Pointer(LibTreeSitter::TSInputEdit))
+      LibTreeSitter.ts_node_edit(@node, edit)
     end
   end
 end

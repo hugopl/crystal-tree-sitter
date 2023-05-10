@@ -74,6 +74,15 @@ module TreeSitter
       Node.new(ptr)
     end
 
+    def ==(other : Node) : Bool
+      LibTreeSitter.ts_node_eq(self, other)
+    end
+
+    # Check if a syntax node has been edited.
+    def has_changes? : Bool
+      LibTreeSitter.ts_node_has_changes(self)
+    end
+
     # Get an S-expression representing the node as a string.
     def to_s(io : IO)
       ptr = LibTreeSitter.ts_node_string(to_unsafe)

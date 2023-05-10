@@ -124,6 +124,9 @@ lib LibTreeSitter
   fun ts_node_end_point(self : TSNode) : TSPoint
   fun ts_node_descendant_for_byte_range(self : TSNode, start_byte : UInt32, end_byte : UInt32) : TSNode
   fun ts_node_descendant_for_point_range(self : TSNode, start_point : TSPoint, end_point : TSPoint) : TSNode
+  fun ts_node_eq(node1 : TSNode, node2 : TSNode) : Bool
+  fun ts_node_edit(self : TSNode, edit : TSInputEdit*)
+  fun ts_node_has_changes(self : TSNode) : Bool
 
   # Query
   fun ts_query_new(language : TSLanguage, source : LibC::Char*, source_len : UInt32,
