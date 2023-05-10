@@ -40,6 +40,15 @@ lib LibTreeSitter
     encoding : TSInputEncoding
   end
 
+  struct TSInputEdit
+    start_byte : UInt32
+    old_end_byte : UInt32
+    new_end_byte : UInt32
+    start_point : TSPoint
+    old_end_point : TSPoint
+    new_end_point : TSPoint
+  end
+
   struct TSQueryCapture
     node : TSNode
     index : UInt32
@@ -100,6 +109,7 @@ lib LibTreeSitter
   fun ts_tree_delete(self : TSTree)
   fun ts_tree_root_node(self : TSTree) : TSNode
   fun ts_tree_print_dot_graph(self : TSTree, file_descriptor : Int32)
+  fun ts_tree_edit(self : TSTree, edit : TSInputEdit*)
 
   # Node
   fun ts_node_type(self : TSNode) : LibC::Char*

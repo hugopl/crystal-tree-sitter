@@ -1,4 +1,5 @@
 module TreeSitter
+  # A point is a line/column tuple.
   struct Point
     @point : LibTreeSitter::TSPoint
 
