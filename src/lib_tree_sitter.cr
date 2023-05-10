@@ -115,6 +115,12 @@ lib LibTreeSitter
   fun ts_node_type(self : TSNode) : LibC::Char*
   fun ts_node_named_child(self : TSNode, index : UInt32) : TSNode
   fun ts_node_is_named(self : TSNode) : Bool
+  fun ts_node_is_missing(self : TSNode) : Bool
+  fun ts_node_is_extra(self : TSNode) : Bool
+  fun ts_node_has_changes(self : TSNode) : Bool
+  fun ts_node_has_error(self : TSNode) : Bool
+  fun ts_node_parent(self : TSNode) : TSNode
+  fun ts_node_child(self : TSNode, index : UInt32) : TSNode
   fun ts_node_child_count(self : TSNode) : UInt32
   fun ts_node_named_child_count(self : TSNode) : UInt32
   fun ts_node_string(self : TSNode) : LibC::Char*
@@ -126,7 +132,6 @@ lib LibTreeSitter
   fun ts_node_descendant_for_point_range(self : TSNode, start_point : TSPoint, end_point : TSPoint) : TSNode
   fun ts_node_eq(node1 : TSNode, node2 : TSNode) : Bool
   fun ts_node_edit(self : TSNode, edit : TSInputEdit*)
-  fun ts_node_has_changes(self : TSNode) : Bool
 
   # Query
   fun ts_query_new(language : TSLanguage, source : LibC::Char*, source_len : UInt32,

@@ -38,6 +38,43 @@ module TreeSitter
       LibTreeSitter.ts_node_is_named(to_unsafe)
     end
 
+    # Check if the node is *missing*. Missing nodes are inserted by the parser in
+    # order to recover from certain kinds of syntax errors.
+    def missing? : Bool
+      LibTreeSitter.ts_node_is_missing(to_unsafe)
+    end
+
+    # Check if the node is *extra*. Extra nodes represent things like comments,
+    # which are not required the grammar, but can appear anywhere.
+    def extra? : Bool
+      LibTreeSitter.ts_node_is_extra(to_unsafe)
+    end
+
+    # Check if a syntax node has been edited.
+    def has_changes? : Bool
+      LibTreeSitter.ts_node_has_changes(self)
+    end
+
+    # Check if the node is a syntax error or contains any syntax errors.
+    def has_error? : Bool
+      LibTreeSitter.ts_node_has_error(self)
+    end
+
+    # Get the node's immediate parent.
+    def parent : Node
+      Node.new(LibTreeSitter.ts_node_parent(self))
+    end
+
+    # Get the node's child at the given index, where zero represents the first
+    # child.
+    #
+    # Raises `IndexError` if index is out of bounds.
+    def child(index : Int32) : Node
+      raise IndexError.new if index < 0 || index >= child_count
+
+      Node.new(LibTreeSitter.ts_node_child(self, index.to_u32))
+    end
+
     # Get the node's type as a String.
     def type : String
       cstr = LibTreeSitter.ts_node_type(to_unsafe)
@@ -76,11 +113,6 @@ module TreeSitter
 
     def ==(other : Node) : Bool
       LibTreeSitter.ts_node_eq(self, other)
-    end
-
-    # Check if a syntax node has been edited.
-    def has_changes? : Bool
-      LibTreeSitter.ts_node_has_changes(self)
     end
 
     # Get an S-expression representing the node as a string.
