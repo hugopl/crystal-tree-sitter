@@ -3,6 +3,7 @@
 /bin/
 /.shards/
 *.dwarf
+*.png
 /.ccls-cache/
 /parsers/**/*.o
 /parsers/**/*.a
