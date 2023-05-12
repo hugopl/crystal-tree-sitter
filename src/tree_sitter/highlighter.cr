@@ -22,6 +22,7 @@ module TreeSitter
     def set_line_range(start_line : Int32, end_line : Int32)
       @cursor.set_point_range(Point.new(start_line, 0_u32), Point.new(end_line, 0_u32))
       @current_line = start_line
+      @started = false
     end
 
     def reset
