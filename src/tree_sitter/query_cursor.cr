@@ -3,54 +3,60 @@ require "./capture"
 module TreeSitter
   class QueryCursor
     @cursor : LibTreeSitter::TSQueryCursor
-    @query : Query?
-    getter last_capture : Capture?
+    property query : Query
 
     # Create a new cursor for executing a given query.
     #
     # The cursor stores the state that is needed to iteratively search
     # for matches. To use the query cursor, call `QueryCursor#exec`
-    # to start running a given query on a given syntax node.
-    def initialize
+    # to start running the given query on a given syntax node.
+    def initialize(@query)
       @cursor = LibTreeSitter.ts_query_cursor_new
     end
 
     def finalize
-      LibTreeSitter.ts_query_cursor_delete(to_unsafe)
+      LibTreeSitter.ts_query_cursor_delete(self)
     end
 
-    def exec(query : Query, node : Node)
-      @query = query
-      LibTreeSitter.ts_query_cursor_exec(to_unsafe, query, node)
-    end
-
-    def next_capture : Capture?
-      query = @query
-      return if query.nil?
-
-      ok = LibTreeSitter.ts_query_cursor_next_capture(to_unsafe, out match, out capture_index)
-      return unless ok
-
-      capture = match.captures[capture_index]
-      ptr = LibTreeSitter.ts_query_capture_name_for_id(query, capture.index, out strlen)
-      rule = TreeSitter.string_pool.get(ptr, strlen)
-      node = Node.new(capture.node)
-
-      @last_capture = Capture.new(rule, node)
+    # Start running a given query on a given node.
+    #
+    # Use `#next_capture` to fetch the captures.
+    def exec(node : Node)
+      LibTreeSitter.ts_query_cursor_exec(self, @query, node)
     end
 
     # Start running a given query on a given node.
     #
     # Yield the capture name and the node
-    def exec(query : Query, node : Node, &block)
-      exec(query, node)
-
+    def exec(node : Node, &block)
+      exec(node)
       loop do
-        rule_node = next_capture
-        break if rule_node.nil?
+        capture = next_capture
+        return if capture.nil?
 
-        yield(*rule_node)
+        yield(capture)
       end
+    end
+
+    # Set the range of row, column positions in which the query will be executed.
+    def set_point_range(start_point : Point, end_point : Point)
+      LibTreeSitter.ts_query_cursor_set_point_range(self, start_point, end_point)
+    end
+
+    # Set the range of bytes in which the query will be executed.
+    def set_byte_range(start_byte : UInt32, end_byte : UInt32)
+      LibTreeSitter.ts_query_cursor_set_byte_range(self, start_byte, end_byte)
+    end
+
+    # Returns the next capture or *nil*.
+    def next_capture : Capture?
+      ok = LibTreeSitter.ts_query_cursor_next_capture(self, out match, out capture_index)
+      return unless ok
+
+      capture = match.captures[capture_index]
+      ptr = LibTreeSitter.ts_query_capture_name_for_id(@query, capture.index, out strlen)
+      rule = TreeSitter.string_pool.get(ptr, strlen)
+      Capture.new(rule, Node.new(capture.node))
     end
 
     def to_unsafe

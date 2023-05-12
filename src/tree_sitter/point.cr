@@ -6,7 +6,7 @@ module TreeSitter
     def initialize(@point)
     end
 
-    def initialize(row : UInt32, column : UInt32)
+    def initialize(row : Int32, column : Int32)
       @point = LibTreeSitter::TSPoint.new(row: row, column: column)
     end
 

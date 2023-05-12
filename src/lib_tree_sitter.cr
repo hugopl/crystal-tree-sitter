@@ -136,6 +136,7 @@ lib LibTreeSitter
   # Query
   fun ts_query_new(language : TSLanguage, source : LibC::Char*, source_len : UInt32,
                    error_offset : UInt32*, error_type : TSQueryError*) : TSQuery
+  fun ts_query_capture_name_for_id(self : TSQuery, id : UInt32, length : UInt32*) : LibC::Char*
   fun ts_query_delete(self : TSQuery)
   fun ts_query_predicates_for_pattern(self : TSQuery, pattern_index : UInt32, length : UInt32*) : TSQueryPredicateStep*
   fun ts_query_pattern_count(self : TSQuery) : UInt32
@@ -147,7 +148,8 @@ lib LibTreeSitter
   fun ts_query_cursor_delete(self : TSQueryCursor)
   fun ts_query_cursor_exec(self : TSQueryCursor, query : TSQuery, node : TSNode)
   fun ts_query_cursor_next_capture(self : TSQueryCursor, match : TSQueryMatch*, capture_index : UInt32*) : Bool
-  fun ts_query_capture_name_for_id(self : TSQuery, id : UInt32, length : UInt32*) : LibC::Char*
+  fun ts_query_cursor_set_byte_range(self : TSQueryCursor, start_byte : UInt32, end_byte : UInt32)
+  fun ts_query_cursor_set_point_range(self : TSQueryCursor, start_pos : TSPoint, end_pos : TSPoint)
 
   # Memory
   fun ts_set_allocator(new_malloc : (LibC::SizeT -> Void*),

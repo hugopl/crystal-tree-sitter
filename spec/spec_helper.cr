@@ -6,7 +6,7 @@ def point_to_offset(line : Int32, col : Int32) : UInt32
 end
 
 def offset_to_point(offset : UInt32) : TreeSitter::Point
-  TreeSitter::Point.new(0, offset)
+  TreeSitter::Point.new(0, offset.to_i)
 end
 
 def parse_json(code : String) : TreeSitter::Tree
