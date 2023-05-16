@@ -1,43 +1,25 @@
 require "./query_cursor"
 
 module TreeSitter
-  class Highlighter
-    @cursor : TreeSitter::QueryCursor
-    @node : Node
+  class Highlighter < QueryCursor
     @pending_capture : Capture?
     @current_line : Int32 = 0
-    @started : Bool = false
 
-    def initialize(language : Language, @node : Node)
-      query = language.highlight_query
-      @cursor = TreeSitter::QueryCursor.new(query)
+    def initialize(query : Query)
+      super
     end
 
-    def initialize(language_name : String, code : String)
-      parser = TreeSitter::Parser.new(language_name)
-      tree = parser.parse(nil, code)
-      initialize(parser.language, tree.root_node)
+    def initialize(language : Language)
+      query = language.highlight_query
+      super(query)
     end
 
     def set_line_range(start_line : Int32, end_line : Int32)
-      @cursor.set_point_range(Point.new(start_line, 0_u32), Point.new(end_line, 0_u32))
+      set_point_range(start_line, 0, end_line, 0)
       @current_line = start_line
-      @started = false
-    end
-
-    def reset
-      @started = false
-      @current_line = 0
-    end
-
-    private def exec : Nil
-      @cursor.exec(@node)
-      @started = true
     end
 
     def highlight_next_line : Array(Capture)
-      exec unless @started
-
       captures = [] of Capture
       expected_line = @current_line
       pending_capture = @pending_capture
@@ -52,7 +34,7 @@ module TreeSitter
       end
 
       loop do
-        capture = @cursor.next_capture
+        capture = next_capture
         break if capture.nil?
 
         capture_line = capture.node.end_point.row

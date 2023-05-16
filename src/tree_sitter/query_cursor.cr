@@ -39,6 +39,13 @@ module TreeSitter
     end
 
     # Set the range of row, column positions in which the query will be executed.
+    def set_point_range(start_row : Int32, start_column : Int32, end_row : Int32, end_column : Int32)
+      start_point = LibTreeSitter::TSPoint.new(row: start_row, column: start_column)
+      end_point = LibTreeSitter::TSPoint.new(row: end_row, column: end_column)
+      LibTreeSitter.ts_query_cursor_set_point_range(self, start_point, end_point)
+    end
+
+    # Set the range of row, column positions in which the query will be executed.
     def set_point_range(start_point : Point, end_point : Point)
       LibTreeSitter.ts_query_cursor_set_point_range(self, start_point, end_point)
     end
