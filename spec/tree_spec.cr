@@ -31,4 +31,16 @@ describe TreeSitter::Tree do
     new_tree = parser.parse(tree, "[null, null]")
     new_tree.root_node.to_s.should eq("(document (array (null) (null)))")
   end
+
+  it "can report changed ranges" do
+    parser = TreeSitter::Parser.new("json")
+    tree = parser.parse(nil, "[1, null]").not_nil!
+    tree_editor = TreeSitter::TreeEditor.new(tree, ->point_to_offset(Int32, Int32), ->offset_to_point(UInt32))
+    tree_editor.delete(line: 0, column: 1, n_bytes: 1)
+    tree_editor.insert(line: 0, column: 1, n_bytes: 2)
+
+    new_tree = parser.parse(tree, "[null, null]")
+    new_tree.changed_ranges(tree).to_a.should eq([TreeSitter::Range.new(start_byte: 1_u32, end_byte: 12_u32,
+      start_row: 0, end_row: 0, start_column: 1, end_column: 12)])
+  end
 end

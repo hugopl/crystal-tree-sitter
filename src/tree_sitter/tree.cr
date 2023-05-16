@@ -29,6 +29,11 @@ module TreeSitter
       Node.new(LibTreeSitter.ts_tree_root_node(to_unsafe))
     end
 
+    def changed_ranges(old_tree : Tree) : Range::Iterator
+      ranges = LibTreeSitter.ts_tree_get_changed_ranges(old_tree, self, out length)
+      Range::Iterator.new(ranges, length)
+    end
+
     # Write a DOT graph describing the syntax tree to the given file.
     def save_dot(io : IO::FileDescriptor)
       LibTreeSitter.ts_tree_print_dot_graph(to_unsafe, io.fd)

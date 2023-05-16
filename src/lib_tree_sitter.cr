@@ -110,6 +110,7 @@ lib LibTreeSitter
   fun ts_tree_root_node(self : TSTree) : TSNode
   fun ts_tree_print_dot_graph(self : TSTree, file_descriptor : Int32)
   fun ts_tree_edit(self : TSTree, edit : TSInputEdit*)
+  fun ts_tree_get_changed_ranges(old_tree : TSTree, new_tree : TSTree, length : UInt32*) : TSRange*
 
   # Node
   fun ts_node_type(self : TSNode) : LibC::Char*
