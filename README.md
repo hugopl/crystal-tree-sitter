@@ -22,29 +22,7 @@ or I haven't had time to work on it yet, probably the last one.
 
 ## Usage
 
-API still not stable at all and subject to change.
-
-```crystal
-require "tree_sitter"
-
-# Printing highlighting information
-highlighter = TreeSitter::Highlighter.new("json", %q({"hey":"ho"}))
-highlighter.each do |rule, node|
-  pp! rule
-  pp! node
-end
-
-# Doing thing step by step...
-parser = TreeSitter::Parser.new("json")
-tree = parser.parse_string(nil, "[1, null]")
-root_node = tree.root_node
-
-highlighter = TreeSitter::Highlighter.new(language, root_node)
-highlighter.each do |rule, node|
-  pp! rule
-  pp! node
-end
-```
+API still not stable at all and subject to change. Meanwhile look at the spec tests to guess hwo to use it 😁️.
 
 The code used in the [Using Parsers](https://tree-sitter.github.io/tree-sitter/using-parsers) tree-sitter tutorial
 was ported as a spec test at [spec/tree_sitter_spec.cr](spec/tree_sitter_spec.cr), the API documentation is being
